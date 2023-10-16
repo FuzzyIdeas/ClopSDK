@@ -1,6 +1,26 @@
 import Cocoa
 import Foundation
 
+@objcMembers
+public class OptimisationResponseObjC: NSObject {
+    public init(path: String, forURL: URL) {
+        self.path = path
+        self.forURL = forURL
+    }
+
+    public let path: String
+    public let forURL: URL
+    public var convertedFrom: String? = nil
+
+    public var oldBytes = 0
+    public var newBytes = 0
+
+    public var oldWidthHeight: CGSize? = nil
+    public var newWidthHeight: CGSize? = nil
+
+    public var id: String { path }
+}
+
 public struct OptimisationResponse: Codable, Identifiable {
     public let path: String
     public let forURL: URL
@@ -13,6 +33,16 @@ public struct OptimisationResponse: Codable, Identifiable {
     public var newWidthHeight: CGSize? = nil
 
     public var id: String { path }
+
+    var objc: OptimisationResponseObjC {
+        let resp = OptimisationResponseObjC(path: path, forURL: forURL)
+        resp.convertedFrom = convertedFrom
+        resp.oldBytes = oldBytes
+        resp.newBytes = newBytes
+        resp.oldWidthHeight = oldWidthHeight
+        resp.newWidthHeight = newWidthHeight
+        return resp
+    }
 }
 
 public struct StopOptimisationRequest: Codable {

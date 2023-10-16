@@ -1,7 +1,27 @@
 import Cocoa
 import Foundation
 
+@objcMembers
+public class CropSizeObjC: NSObject {
+    public init(width: Int, height: Int, name: String = "", longEdge: Bool = false) {
+        self.width = width
+        self.height = height
+        self.name = name
+        self.longEdge = longEdge
+    }
+
+    public let width: Int
+    public let height: Int
+    public var name = ""
+    public var longEdge = false
+}
+
 public struct CropSize: Codable, Hashable, Identifiable {
+    init?(_ cropSize: CropSizeObjC?) {
+        guard let cropSize else { return nil }
+        self.init(width: cropSize.width, height: cropSize.height, name: cropSize.name, longEdge: cropSize.longEdge)
+    }
+
     public init(width: Int, height: Int, name: String = "", longEdge: Bool = false) {
         self.width = width
         self.height = height

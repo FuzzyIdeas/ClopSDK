@@ -154,7 +154,7 @@ public class ClopSDK {
         return responses
     }
 
-    public func stopCurrentRequests() {
+    public func stopOptimisations() {
         guard !currentRequestIDs.isEmpty else {
             return
         }
@@ -213,7 +213,135 @@ public class ClopSDK {
 
     var currentRequestIDs: [String] = []
     var clopAppQuery: MetaQuery?
-
 }
 
 var clopAppURL = runningClopApp()?.bundleURL
+
+@objcMembers
+public class ClopSDKObjC: NSObject {
+    public static let shared = ClopSDKObjC()
+
+    public func optimise(path: String) throws -> OptimisationResponseObjC {
+        let resp = try ClopSDK.shared.optimise(path: path)
+        return resp.objc
+    }
+
+    public func optimise(paths: [String]) throws -> [OptimisationResponseObjC] {
+        let resp = try ClopSDK.shared.optimise(paths: paths)
+        return resp.map(\.objc)
+    }
+
+    public func optimise(url: URL) throws -> OptimisationResponseObjC {
+        let resp = try ClopSDK.shared.optimise(url: url)
+        return resp.objc
+    }
+
+    public func optimise(urls: [URL]) throws -> [OptimisationResponseObjC] {
+        let resp = try ClopSDK.shared.optimise(urls: urls)
+        return resp.map(\.objc)
+    }
+
+    public func optimise(
+        path: String,
+        aggressive: Bool = false,
+        downscaleTo downscaleFactor: Double,
+        cropTo cropSize: CropSizeObjC? = nil,
+        changePlaybackSpeedBy playbackSpeedFactor: Double,
+        hideGUI: Bool = false,
+        copyToClipboard: Bool = false,
+        inTheBackground: Bool = false
+    ) throws -> OptimisationResponseObjC {
+        let resp = try ClopSDK.shared.optimise(
+            url: path.url,
+            aggressive: aggressive,
+            downscaleTo: downscaleFactor == -1 ? nil : downscaleFactor,
+            cropTo: CropSize(cropSize),
+            changePlaybackSpeedBy: playbackSpeedFactor == -1 ? nil : playbackSpeedFactor,
+            hideGUI: hideGUI,
+            copyToClipboard: copyToClipboard,
+            inTheBackground: inTheBackground
+        )
+        return resp.objc
+    }
+
+    public func optimise(
+        paths: [String],
+        aggressive: Bool = false,
+        downscaleTo downscaleFactor: Double,
+        cropTo cropSize: CropSizeObjC? = nil,
+        changePlaybackSpeedBy playbackSpeedFactor: Double,
+        hideGUI: Bool = false,
+        copyToClipboard: Bool = false,
+        inTheBackground: Bool = false
+    ) throws -> [OptimisationResponseObjC] {
+        let resp = try ClopSDK.shared.optimise(
+            urls: paths.map(\.url),
+            aggressive: aggressive,
+            downscaleTo: downscaleFactor == -1 ? nil : downscaleFactor,
+            cropTo: CropSize(cropSize),
+            changePlaybackSpeedBy: playbackSpeedFactor == -1 ? nil : playbackSpeedFactor,
+            hideGUI: hideGUI,
+            copyToClipboard: copyToClipboard,
+            inTheBackground: inTheBackground
+        )
+        return resp.map(\.objc)
+    }
+
+    public func optimise(
+        url: URL,
+        aggressive: Bool = false,
+        downscaleTo downscaleFactor: Double,
+        cropTo cropSize: CropSizeObjC? = nil,
+        changePlaybackSpeedBy playbackSpeedFactor: Double,
+        hideGUI: Bool = false,
+        copyToClipboard: Bool = false,
+        inTheBackground: Bool = false
+    ) throws -> OptimisationResponseObjC {
+        let responses = try ClopSDK.shared.optimise(
+            urls: [url],
+            aggressive: aggressive,
+            downscaleTo: downscaleFactor == -1 ? nil : downscaleFactor,
+            cropTo: CropSize(cropSize),
+            changePlaybackSpeedBy: playbackSpeedFactor == -1 ? nil : playbackSpeedFactor,
+            hideGUI: hideGUI,
+            copyToClipboard: copyToClipboard,
+            inTheBackground: inTheBackground
+        )
+        return responses[0].objc
+    }
+
+    public func optimise(
+        urls: [URL],
+        aggressive: Bool = false,
+        downscaleTo downscaleFactor: Double = -1,
+        cropTo cropSize: CropSizeObjC? = nil,
+        changePlaybackSpeedBy playbackSpeedFactor: Double = -1,
+        hideGUI: Bool = false,
+        copyToClipboard: Bool = false,
+        inTheBackground: Bool = false
+    ) throws -> [OptimisationResponseObjC] {
+        let resp = try ClopSDK.shared.optimise(
+            urls: urls,
+            aggressive: aggressive,
+            downscaleTo: downscaleFactor == -1 ? nil : downscaleFactor,
+            cropTo: CropSize(cropSize),
+            changePlaybackSpeedBy: playbackSpeedFactor == -1 ? nil : playbackSpeedFactor,
+            hideGUI: hideGUI,
+            copyToClipboard: copyToClipboard,
+            inTheBackground: inTheBackground
+        )
+        return resp.map(\.objc)
+    }
+
+    public func waitForClopToBeAvailable(for seconds: TimeInterval = 5.0) -> Bool {
+        ClopSDK.shared.waitForClopToBeAvailable(for: seconds)
+    }
+
+    public func ensureClopIsRunning(completion: ((Bool) -> Void)? = nil) {
+        ClopSDK.shared.ensureClopIsRunning(completion: completion)
+    }
+
+    public func stopOptimisations() {
+        ClopSDK.shared.stopOptimisations()
+    }
+}

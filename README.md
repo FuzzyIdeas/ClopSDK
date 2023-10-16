@@ -56,6 +56,14 @@ To make sure the app is running before sending the file paths, you can use the `
 let clopIsAvailable = ClopSDK.shared.waitForClopToBeAvailable(for: 5)
 ```
 
+### Stop running optimisations
+
+You can stop currently running optimisations by calling the `stopOptimisations` method:
+
+```swift
+ClopSDK.shared.stopOptimisations()
+```
+
 ### Options
 
 You can also pass options to the `optimise` method to change the way Clop optimises the files, or to add additional functionality like cropping, downscaling, changing playback speed etc.
@@ -100,6 +108,23 @@ struct OptimisationResponse {
 ```
 
 For more examples on how to use the SDK, check out the [tests](Tests/ClopSDKTests/ClopSDKTests.swift).
+
+### Objective-C
+
+ClopSDK is also available in Objective-C:
+
+```objc
+bool clopIsAvailable = [ClopSDKObjC.shared waitForClopToBeAvailableFor:5];
+if (!clopIsAvailable) {
+    NSLog(@"Clop is not available");
+    return 1;
+}
+
+OptimisationResponseObjC* response = [ClopSDKObjC.shared optimiseWithPath:@"/path/to/image.png" error:nil];
+if (response) {
+    NSLog(@"File optimised at %@", response.path);
+}
+```
 
 ## License
 ClopSDK is available under the MIT license. See the [LICENSE](LICENSE) file for more info.
