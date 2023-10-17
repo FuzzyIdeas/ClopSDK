@@ -117,7 +117,7 @@ ClopSDK is also available in Objective-C:
 bool clopIsAvailable = [ClopSDKObjC.shared waitForClopToBeAvailableFor:5];
 if (!clopIsAvailable) {
     NSLog(@"Clop is not available");
-    return 1;
+    return;
 }
 
 OptimisationResponseObjC* response = [ClopSDKObjC.shared optimiseWithPath:@"/path/to/image.png" error:nil];
