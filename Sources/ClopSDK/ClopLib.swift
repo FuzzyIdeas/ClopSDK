@@ -61,6 +61,7 @@ public struct OptimisationRequest: Codable, Identifiable {
     public let copyToClipboard: Bool
     public let aggressiveOptimisation: Bool
     public let source: String
+    public var output: String?
 }
 
 public func runningClopApp() -> NSRunningApplication? {

@@ -14,7 +14,8 @@ public class ClopSDK {
         changePlaybackSpeedBy playbackSpeedFactor: Double? = nil,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> OptimisationResponse {
         try optimise(
             url: path.url,
@@ -24,7 +25,8 @@ public class ClopSDK {
             changePlaybackSpeedBy: playbackSpeedFactor,
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
-            inTheBackground: inTheBackground
+            inTheBackground: inTheBackground,
+            output: output
         )
     }
 
@@ -37,7 +39,8 @@ public class ClopSDK {
         changePlaybackSpeedBy playbackSpeedFactor: Double? = nil,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> [OptimisationResponse] {
         try optimise(
             urls: paths.map(\.url),
@@ -47,7 +50,8 @@ public class ClopSDK {
             changePlaybackSpeedBy: playbackSpeedFactor,
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
-            inTheBackground: inTheBackground
+            inTheBackground: inTheBackground,
+            output: output
         )
     }
 
@@ -59,7 +63,8 @@ public class ClopSDK {
         changePlaybackSpeedBy playbackSpeedFactor: Double? = nil,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> OptimisationResponse {
         try optimise(
             url: path.url,
@@ -69,7 +74,8 @@ public class ClopSDK {
             changePlaybackSpeedBy: playbackSpeedFactor,
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
-            inTheBackground: inTheBackground
+            inTheBackground: inTheBackground,
+            output: output
         )
     }
 
@@ -81,7 +87,8 @@ public class ClopSDK {
         changePlaybackSpeedBy playbackSpeedFactor: Double? = nil,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> [OptimisationResponse] {
         try optimise(
             urls: paths.map(\.url),
@@ -91,7 +98,8 @@ public class ClopSDK {
             changePlaybackSpeedBy: playbackSpeedFactor,
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
-            inTheBackground: inTheBackground
+            inTheBackground: inTheBackground,
+            output: output
         )
     }
 
@@ -103,7 +111,8 @@ public class ClopSDK {
         changePlaybackSpeedBy playbackSpeedFactor: Double? = nil,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> OptimisationResponse {
         let responses = try optimise(
             urls: [url],
@@ -113,7 +122,8 @@ public class ClopSDK {
             changePlaybackSpeedBy: playbackSpeedFactor,
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
-            inTheBackground: inTheBackground
+            inTheBackground: inTheBackground,
+            output: output
         )
         return responses[0]
     }
@@ -126,7 +136,8 @@ public class ClopSDK {
         changePlaybackSpeedBy playbackSpeedFactor: Double? = nil,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> [OptimisationResponse] {
         currentRequestIDs = urls.map(\.absoluteString)
         let req = OptimisationRequest(
@@ -138,7 +149,8 @@ public class ClopSDK {
             hideFloatingResult: hideGUI,
             copyToClipboard: copyToClipboard,
             aggressiveOptimisation: aggressive,
-            source: "sdk"
+            source: "sdk",
+            output: output
         )
 
         guard !inTheBackground else {
@@ -241,6 +253,26 @@ public class ClopSDKObjC: NSObject {
         return resp.map(\.objc)
     }
 
+    public func optimise(path: String, output: String? = nil) throws -> OptimisationResponseObjC {
+        let resp = try ClopSDK.shared.optimise(path: path, output: output)
+        return resp.objc
+    }
+
+    public func optimise(paths: [String], output: String? = nil) throws -> [OptimisationResponseObjC] {
+        let resp = try ClopSDK.shared.optimise(paths: paths, output: output)
+        return resp.map(\.objc)
+    }
+
+    public func optimise(url: URL, output: String? = nil) throws -> OptimisationResponseObjC {
+        let resp = try ClopSDK.shared.optimise(url: url, output: output)
+        return resp.objc
+    }
+
+    public func optimise(urls: [URL], output: String? = nil) throws -> [OptimisationResponseObjC] {
+        let resp = try ClopSDK.shared.optimise(urls: urls, output: output)
+        return resp.map(\.objc)
+    }
+
     public func optimise(
         path: String,
         aggressive: Bool = false,
@@ -249,7 +281,8 @@ public class ClopSDKObjC: NSObject {
         changePlaybackSpeedBy playbackSpeedFactor: Double,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> OptimisationResponseObjC {
         let resp = try ClopSDK.shared.optimise(
             url: path.url,
@@ -259,7 +292,8 @@ public class ClopSDKObjC: NSObject {
             changePlaybackSpeedBy: playbackSpeedFactor == -1 ? nil : playbackSpeedFactor,
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
-            inTheBackground: inTheBackground
+            inTheBackground: inTheBackground,
+            output: output
         )
         return resp.objc
     }
@@ -272,7 +306,8 @@ public class ClopSDKObjC: NSObject {
         changePlaybackSpeedBy playbackSpeedFactor: Double,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> [OptimisationResponseObjC] {
         let resp = try ClopSDK.shared.optimise(
             urls: paths.map(\.url),
@@ -282,7 +317,8 @@ public class ClopSDKObjC: NSObject {
             changePlaybackSpeedBy: playbackSpeedFactor == -1 ? nil : playbackSpeedFactor,
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
-            inTheBackground: inTheBackground
+            inTheBackground: inTheBackground,
+            output: output
         )
         return resp.map(\.objc)
     }
@@ -295,7 +331,8 @@ public class ClopSDKObjC: NSObject {
         changePlaybackSpeedBy playbackSpeedFactor: Double,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> OptimisationResponseObjC {
         let responses = try ClopSDK.shared.optimise(
             urls: [url],
@@ -305,7 +342,8 @@ public class ClopSDKObjC: NSObject {
             changePlaybackSpeedBy: playbackSpeedFactor == -1 ? nil : playbackSpeedFactor,
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
-            inTheBackground: inTheBackground
+            inTheBackground: inTheBackground,
+            output: output
         )
         return responses[0].objc
     }
@@ -318,7 +356,8 @@ public class ClopSDKObjC: NSObject {
         changePlaybackSpeedBy playbackSpeedFactor: Double = -1,
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
-        inTheBackground: Bool = false
+        inTheBackground: Bool = false,
+        output: String? = nil
     ) throws -> [OptimisationResponseObjC] {
         let resp = try ClopSDK.shared.optimise(
             urls: urls,
@@ -328,7 +367,8 @@ public class ClopSDKObjC: NSObject {
             changePlaybackSpeedBy: playbackSpeedFactor == -1 ? nil : playbackSpeedFactor,
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
-            inTheBackground: inTheBackground
+            inTheBackground: inTheBackground,
+            output: output
         )
         return resp.map(\.objc)
     }
