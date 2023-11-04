@@ -15,7 +15,8 @@ public class ClopSDK {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> OptimisationResponse {
         try optimise(
             url: path.url,
@@ -26,7 +27,8 @@ public class ClopSDK {
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
             inTheBackground: inTheBackground,
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
     }
 
@@ -40,7 +42,8 @@ public class ClopSDK {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> [OptimisationResponse] {
         try optimise(
             urls: paths.map(\.url),
@@ -51,7 +54,8 @@ public class ClopSDK {
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
             inTheBackground: inTheBackground,
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
     }
 
@@ -64,7 +68,8 @@ public class ClopSDK {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> OptimisationResponse {
         try optimise(
             url: path.url,
@@ -75,7 +80,8 @@ public class ClopSDK {
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
             inTheBackground: inTheBackground,
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
     }
 
@@ -88,7 +94,8 @@ public class ClopSDK {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> [OptimisationResponse] {
         try optimise(
             urls: paths.map(\.url),
@@ -99,7 +106,8 @@ public class ClopSDK {
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
             inTheBackground: inTheBackground,
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
     }
 
@@ -112,7 +120,8 @@ public class ClopSDK {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> OptimisationResponse {
         let responses = try optimise(
             urls: [url],
@@ -123,7 +132,8 @@ public class ClopSDK {
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
             inTheBackground: inTheBackground,
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
         return responses[0]
     }
@@ -137,7 +147,8 @@ public class ClopSDK {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> [OptimisationResponse] {
         currentRequestIDs = urls.map(\.absoluteString)
         let req = OptimisationRequest(
@@ -150,7 +161,8 @@ public class ClopSDK {
             copyToClipboard: copyToClipboard,
             aggressiveOptimisation: aggressive,
             source: "sdk",
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
 
         guard !inTheBackground else {
@@ -187,12 +199,21 @@ public class ClopSDK {
     }
 
     public func ensureClopIsRunning(completion: ((Bool) -> Void)? = nil) {
+        listenForRunningClopApp()
         DispatchQueue.main.async { [weak self] in
             guard let clopAppURL else {
-                if isClopRunning() {
-                    clopAppURL = runningClopApp()?.bundleURL
+                if isClopRunning(), let app = runningClopApp() {
+                    clopAppURL = app.bundleURL
+                    clopAppIdentifier = app.bundleIdentifier ?? "com.lowtechguys.Clop"
                     return
                 }
+
+                if FileManager.default.fileExists(atPath: "/Applications/Setapp/Clop.app") {
+                    clopAppURL = URL(fileURLWithPath: "/Applications/Setapp/Clop.app")
+                    self?.ensureClopIsRunning(completion: completion)
+                    return
+                }
+
                 if FileManager.default.fileExists(atPath: "/Applications/Clop.app") {
                     clopAppURL = URL(fileURLWithPath: "/Applications/Clop.app")
                     self?.ensureClopIsRunning(completion: completion)
@@ -220,14 +241,36 @@ public class ClopSDK {
         }
     }
 
-    static let OPTIMISATION_PORT = LocalMachPort(portLocation: "com.lowtechguys.Clop.optimisationService")
-    static let OPTIMISATION_STOP_PORT = LocalMachPort(portLocation: "com.lowtechguys.Clop.optimisationServiceStop")
+    static var OPTIMISATION_PORT = LocalMachPort(portLocation: "\(clopAppIdentifier).optimisationService")
+    static var OPTIMISATION_STOP_PORT = LocalMachPort(portLocation: "\(clopAppIdentifier).optimisationServiceStop")
 
-    var currentRequestIDs: [String] = []
-    var clopAppQuery: MetaQuery?
+    private var currentRequestIDs: [String] = []
+    private var clopAppQuery: MetaQuery?
+    private var runningAppListener: NSObjectProtocol?
+
+    private func listenForRunningClopApp() {
+        guard runningAppListener == nil else { return }
+
+        let center = NSWorkspace.shared.notificationCenter
+        runningAppListener = center.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: OperationQueue.main) { (notification: Notification) in
+            guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                  let id = app.bundleIdentifier, id.starts(with: "com.lowtechguys.Clop"), let url = app.bundleURL
+            else {
+                return
+            }
+            DispatchQueue.main.async {
+                clopAppIdentifier = id
+                clopAppURL = url
+                ClopSDK.OPTIMISATION_PORT = LocalMachPort(portLocation: "\(clopAppIdentifier).optimisationService")
+                ClopSDK.OPTIMISATION_STOP_PORT = LocalMachPort(portLocation: "\(clopAppIdentifier).optimisationServiceStop")
+            }
+        }
+    }
+
 }
 
-var clopAppURL = runningClopApp()?.bundleURL
+var clopAppURL: URL? = runningClopApp()?.bundleURL
+var clopAppIdentifier: String = runningClopApp()?.bundleIdentifier ?? "com.lowtechguys.Clop"
 
 @objcMembers
 public class ClopSDKObjC: NSObject {
@@ -282,7 +325,8 @@ public class ClopSDKObjC: NSObject {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> OptimisationResponseObjC {
         let resp = try ClopSDK.shared.optimise(
             url: path.url,
@@ -293,7 +337,8 @@ public class ClopSDKObjC: NSObject {
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
             inTheBackground: inTheBackground,
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
         return resp.objc
     }
@@ -307,7 +352,8 @@ public class ClopSDKObjC: NSObject {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> [OptimisationResponseObjC] {
         let resp = try ClopSDK.shared.optimise(
             urls: paths.map(\.url),
@@ -318,7 +364,8 @@ public class ClopSDKObjC: NSObject {
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
             inTheBackground: inTheBackground,
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
         return resp.map(\.objc)
     }
@@ -332,7 +379,8 @@ public class ClopSDKObjC: NSObject {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> OptimisationResponseObjC {
         let responses = try ClopSDK.shared.optimise(
             urls: [url],
@@ -343,7 +391,8 @@ public class ClopSDKObjC: NSObject {
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
             inTheBackground: inTheBackground,
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
         return responses[0].objc
     }
@@ -357,7 +406,8 @@ public class ClopSDKObjC: NSObject {
         hideGUI: Bool = false,
         copyToClipboard: Bool = false,
         inTheBackground: Bool = false,
-        output: String? = nil
+        output: String? = nil,
+        removeAudio: Bool? = nil
     ) throws -> [OptimisationResponseObjC] {
         let resp = try ClopSDK.shared.optimise(
             urls: urls,
@@ -368,7 +418,8 @@ public class ClopSDKObjC: NSObject {
             hideGUI: hideGUI,
             copyToClipboard: copyToClipboard,
             inTheBackground: inTheBackground,
-            output: output
+            output: output,
+            removeAudio: removeAudio
         )
         return resp.map(\.objc)
     }

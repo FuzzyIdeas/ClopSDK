@@ -62,10 +62,12 @@ public struct OptimisationRequest: Codable, Identifiable {
     public let aggressiveOptimisation: Bool
     public let source: String
     public var output: String?
+    public var removeAudio: Bool?
 }
 
 public func runningClopApp() -> NSRunningApplication? {
-    NSRunningApplication.runningApplications(withBundleIdentifier: "com.lowtechguys.Clop").first
+    NSRunningApplication.runningApplications(withBundleIdentifier: "com.lowtechguys.Clop-setapp").first
+        ?? NSRunningApplication.runningApplications(withBundleIdentifier: "com.lowtechguys.Clop").first
 }
 
 public func isClopRunning() -> Bool {
@@ -73,7 +75,16 @@ public func isClopRunning() -> Bool {
 }
 
 public func isClopRunningAndListening() -> Bool {
-    runningClopApp() != nil && ClopSDK.OPTIMISATION_PORT.isValidForSending
+    guard let app = runningClopApp() else {
+        return false
+    }
+
+    clopAppURL = app.bundleURL
+    clopAppIdentifier = app.bundleIdentifier ?? "com.lowtechguys.Clop"
+
+    ClopSDK.OPTIMISATION_PORT = LocalMachPort(portLocation: "\(clopAppIdentifier).optimisationService")
+    ClopSDK.OPTIMISATION_STOP_PORT = LocalMachPort(portLocation: "\(clopAppIdentifier).optimisationServiceStop")
+    return ClopSDK.OPTIMISATION_PORT.isValidForSending
 }
 
 func printerr(_ msg: String, terminator: String = "\n") {

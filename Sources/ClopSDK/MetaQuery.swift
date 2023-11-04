@@ -48,7 +48,7 @@ func findClopApp(_ handler: @escaping (URL?) -> Void) -> MetaQuery {
     return MetaQuery(
         scopes: ["/"], queryString: "kMDItemContentTypeTree == 'com.apple.application-bundle' && kMDItemFSName == 'Clop.app'", sortBy: sortByLastUsedDateAdded
     ) { items in
-        guard let item = items.first(where: { item in item.path.hasSuffix("/Applications/Clop.app") }) ?? items.first,
+        guard let item = items.first(where: { item in item.path.hasSuffix("/Setapp/Clop.app") }) ?? items.first(where: { item in item.path.hasSuffix("/Applications/Clop.app") }) ?? items.first,
               let url = item.value(forAttribute: NSMetadataItemURLKey) as? URL
         else {
             return
