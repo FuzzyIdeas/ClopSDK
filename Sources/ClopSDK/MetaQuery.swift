@@ -1,15 +1,20 @@
 import Foundation
 
 class MetaQuery {
+    static let queryOperationQueue = OperationQueue()
+
     init(scopes: [String], queryString: String, sortBy: [NSSortDescriptor] = [], handler: @escaping ([NSMetadataItem]) -> Void) {
         let q = NSMetadataQuery()
         q.searchScopes = scopes
         q.predicate = NSPredicate(fromMetadataQueryString: queryString)
         q.sortDescriptors = sortBy
+        q.operationQueue = MetaQuery.queryOperationQueue
 
-        q.start()
+        MetaQuery.queryOperationQueue.addOperation {
+            q.start()
+        }
         query = q
-        observer = NotificationCenter.default.addObserver(forName: NSNotification.Name.NSMetadataQueryDidFinishGathering, object: q, queue: nil) { [weak self] notification in
+        observer = NotificationCenter.default.addObserver(forName: NSNotification.Name.NSMetadataQueryDidFinishGathering, object: q, queue: MetaQuery.queryOperationQueue) { [weak self] notification in
             guard let query = notification.object as? NSMetadataQuery,
                   let items = query.results as? [NSMetadataItem]
             else {
@@ -19,7 +24,9 @@ class MetaQuery {
             if let observer = self?.observer {
                 NotificationCenter.default.removeObserver(observer)
             }
-            handler(items)
+            DispatchQueue.main.async {
+                handler(items)
+            }
         }
     }
 
