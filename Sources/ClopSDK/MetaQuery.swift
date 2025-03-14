@@ -1,8 +1,6 @@
 import Foundation
 
 class MetaQuery {
-    static let queryOperationQueue = OperationQueue()
-
     init(scopes: [String], queryString: String, sortBy: [NSSortDescriptor] = [], handler: @escaping ([NSMetadataItem]) -> Void) {
         let q = NSMetadataQuery()
         q.searchScopes = scopes
@@ -36,6 +34,8 @@ class MetaQuery {
             NotificationCenter.default.removeObserver(observer)
         }
     }
+
+    static let queryOperationQueue = OperationQueue()
 
     let query: NSMetadataQuery
     var observer: NSObjectProtocol?

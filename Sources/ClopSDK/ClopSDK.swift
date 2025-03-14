@@ -198,6 +198,42 @@ public class ClopSDK {
         return isClopRunningAndListening()
     }
 
+    public func getClopAppURL() -> URL? {
+        if let clopAppURL {
+            return clopAppURL
+        }
+
+        if isClopRunning(), let app = runningClopApp() {
+            clopAppURL = app.bundleURL
+            clopAppIdentifier = app.bundleIdentifier ?? "com.lowtechguys.Clop"
+            return clopAppURL
+        }
+
+        if FileManager.default.fileExists(atPath: "/Applications/Setapp/Clop.app") {
+            clopAppURL = URL(fileURLWithPath: "/Applications/Setapp/Clop.app")
+            return clopAppURL
+        }
+
+        if FileManager.default.fileExists(atPath: "/Applications/Clop.app") {
+            clopAppURL = URL(fileURLWithPath: "/Applications/Clop.app")
+            return clopAppURL
+        }
+
+        let sema = DispatchSemaphore(value: 0)
+        clopAppQuery = findClopApp { url in
+            guard let url else {
+                sema.signal()
+                return
+            }
+            DispatchQueue.main.async {
+                clopAppURL = url
+                sema.signal()
+            }
+        }
+        _ = sema.wait(timeout: .now() + 3)
+        return clopAppURL
+    }
+
     public func ensureClopIsRunning(completion: ((Bool) -> Void)? = nil) {
         listenForRunningClopApp()
         DispatchQueue.main.async { [weak self] in
